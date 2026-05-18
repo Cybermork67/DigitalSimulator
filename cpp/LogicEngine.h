@@ -2,19 +2,21 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "Component.h"
+
 
 class LogicEngine {
 private:
     std::string circuitName;
     int tickCount;
-    std::vector<Component*> circuit;
+    std::vector<std::unique_ptr<Component>> circuit;
 
 public:
     LogicEngine();
     ~LogicEngine();
     void setCircuitName(std::string name);
-    void addComponent(Component* comp);
+    void addComponent(std::unique_ptr<Component> c);
     void doTick();
     int getComponentCount() const;
 };
