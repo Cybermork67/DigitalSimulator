@@ -29,7 +29,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd cpp && g++ main.cpp -o main && ./main"
+args = "cd cpp && g++ main.cpp -o main 2>/dev/null && clear && ./main"
 
 [agent]
 stack = "PNPM_WORKSPACE"
