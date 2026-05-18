@@ -25,12 +25,12 @@ int main() {
 
     std::cout << "\nSetze Signale..." << std::endl;
     g1->setInputA(1);
-    g1->setInputB(1);
+    g1->setInputB(0);
 
-    g2->setInputA(0);
+    g2->setInputA(1);
     g2->setInputB(1);
 
-    g3->setInputA(1);
+    g3->setInputA(0);
     g3->setInputB(0);
 
     engine.addComponent(std::move(g1));

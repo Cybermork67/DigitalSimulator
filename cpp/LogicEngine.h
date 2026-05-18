@@ -16,7 +16,7 @@ public:
     LogicEngine();
     ~LogicEngine();
     void setCircuitName(std::string name);
-    void addComponent(std::unique_ptr<Component> c);
+    void addComponent(std::unique_ptr<Component> comp);
     void doTick();
     int getComponentCount() const;
 };
