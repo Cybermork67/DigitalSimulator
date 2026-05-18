@@ -14,4 +14,4 @@ PORT = "8081"
 BASE_PATH = "/__mockup"
 
 [services.development]
-run = "exit 0"
+run = "/bin/true"

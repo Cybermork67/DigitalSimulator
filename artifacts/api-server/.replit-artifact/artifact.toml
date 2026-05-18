@@ -10,7 +10,7 @@ name = "API Server"
 paths = ["/api"]
 
 [services.development]
-run = "exit 0"
+run = "/bin/true"
 
 [services.production]
 
