@@ -1,7 +1,7 @@
 #include "Component.h"
 
 Component::Component(std::string n) 
-    : name(n), inA(false), inB(false), output(false) {
+    : name(std::move(n)), inA(false), inB(false), output(false) {
     std::cout << "[" << name << "] Komponente erstellt" << std::endl;
 }
 
