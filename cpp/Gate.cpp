@@ -5,24 +5,19 @@ Gate::Gate(std::string n)
     std::cout << "[" << name << "] Gate erstellt" << std::endl;
 }
 
-void Gate::setInputA(int val) {
-    if (val == 0) {
-        inA = false;
-    } else if (val == 1) {
-        inA = true;
-    } else {
-        std::cerr << "[" << name << " FEHLER] Ungültiger Wert für Eingang A: " << val 
+void Gate::setInput(int port, int val) {
+    bool bval;
+    if (val == 0)       bval = false;
+    else if (val == 1)  bval = true;
+    else {
+        std::cerr << "[" << name << " FEHLER] Ungültiger Wert: " << val
                   << " (erwartet 0 oder 1)" << std::endl;
+        return;
     }
-}
-
-void Gate::setInputB(int val) {
-    if (val == 0) {
-        inB = false;
-    } else if (val == 1) {
-        inB = true;
-    } else {
-        std::cerr << "[" << name << " FEHLER] Ungültiger Wert für Eingang B: " << val 
+    if (port == 0)      inA = bval;
+    else if (port == 1) inB = bval;
+    else {
+        std::cerr << "[" << name << " FEHLER] Ungültiger Port: " << port
                   << " (erwartet 0 oder 1)" << std::endl;
     }
 }

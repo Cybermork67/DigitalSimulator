@@ -6,19 +6,14 @@ NandGate::NandGate(std::string n)
     std::cout << "[" << name << "] NAND-Gatter aktiviert (Komposition: AND + NOT)" << std::endl;
 }
 
-void NandGate::setInputA(int val) {
-    inA = (val != 0);
-    andGate.setInputA(val);
-}
-
-void NandGate::setInputB(int val) {
-    inB = (val != 0);
-    andGate.setInputB(val);
+void NandGate::setInput(int port, int val) {
+    Gate::setInput(port, val);
+    andGate.setInput(port, val);
 }
 
 bool NandGate::evaluate() {
     bool andResult = andGate.evaluate();
-    notGate.setInputA(andResult ? 1 : 0);
+    notGate.setInput(0, andResult ? 1 : 0);
     output = notGate.evaluate();
     return output;
 }

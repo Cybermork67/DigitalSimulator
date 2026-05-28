@@ -11,8 +11,7 @@ private:
 
 public:
     NandGate(std::string n);
-    void setInputA(int val) override;
-    void setInputB(int val) override;
+    void setInput(int port, int val) override;
     bool evaluate() override;
     void printState() const override;
 };

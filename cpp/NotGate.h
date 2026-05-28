@@ -5,7 +5,7 @@
 class NotGate : public Gate {
 public:
     NotGate(std::string n);
-    void setInputB(int val) override;
+    void setInput(int port, int val) override;
     bool evaluate() override;
     void printState() const override;
 };

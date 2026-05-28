@@ -11,13 +11,13 @@ int main() {
 
     std::cout << "--- STARTE AUTOMATISIERTE WAHRHEITSTABELLEN-TESTS ---" << std::endl;
 
-    // AND-Gatter: 4 Testfaelle (0-0->0, 0-1->0, 1-0->0, 1-1->1)
+    // AND-Gatter: 4 Testfaelle
     {
         auto gate = std::make_unique<AndGate>("AND-Test");
         int tests[4][3] = {{0,0,0},{0,1,0},{1,0,0},{1,1,1}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInputA(tests[i][0]);
-            gate->setInputB(tests[i][1]);
+            gate->setInput(0, tests[i][0]);
+            gate->setInput(1, tests[i][1]);
             int result = gate->evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER AND: A=" << tests[i][0] << " B=" << tests[i][1]
@@ -28,13 +28,13 @@ int main() {
         }
     }
 
-    // OR-Gatter: 4 Testfaelle (0-0->0, 0-1->1, 1-0->1, 1-1->1)
+    // OR-Gatter: 4 Testfaelle
     {
         auto gate = std::make_unique<OrGate>("OR-Test");
         int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,1}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInputA(tests[i][0]);
-            gate->setInputB(tests[i][1]);
+            gate->setInput(0, tests[i][0]);
+            gate->setInput(1, tests[i][1]);
             int result = gate->evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER OR: A=" << tests[i][0] << " B=" << tests[i][1]
@@ -45,13 +45,13 @@ int main() {
         }
     }
 
-    // XOR-Gatter: 4 Testfaelle (0-0->0, 0-1->1, 1-0->1, 1-1->0)
+    // XOR-Gatter: 4 Testfaelle
     {
         auto gate = std::make_unique<XorGate>("XOR-Test");
         int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,0}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInputA(tests[i][0]);
-            gate->setInputB(tests[i][1]);
+            gate->setInput(0, tests[i][0]);
+            gate->setInput(1, tests[i][1]);
             int result = gate->evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER XOR: A=" << tests[i][0] << " B=" << tests[i][1]
@@ -62,13 +62,13 @@ int main() {
         }
     }
 
-    // NAND-Gatter: 4 Testfaelle (0-0->1, 0-1->1, 1-0->1, 1-1->0)
+    // NAND-Gatter: 4 Testfaelle
     {
         auto gate = std::make_unique<NandGate>("NAND-Test");
         int tests[4][3] = {{0,0,1},{0,1,1},{1,0,1},{1,1,0}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInputA(tests[i][0]);
-            gate->setInputB(tests[i][1]);
+            gate->setInput(0, tests[i][0]);
+            gate->setInput(1, tests[i][1]);
             int result = gate->evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER NAND: A=" << tests[i][0] << " B=" << tests[i][1]
@@ -79,12 +79,12 @@ int main() {
         }
     }
 
-    // NOT-Gatter: 2 Testfaelle (0->1, 1->0)
+    // NOT-Gatter: 2 Testfaelle
     {
         auto gate = std::make_unique<NotGate>("NOT-Test");
         int tests[2][2] = {{0,1},{1,0}};
         for (int i = 0; i < 2; ++i) {
-            gate->setInputA(tests[i][0]);
+            gate->setInput(0, tests[i][0]);
             int result = gate->evaluate() ? 1 : 0;
             if (result != tests[i][1]) {
                 std::cerr << "FEHLER NOT: A=" << tests[i][0]

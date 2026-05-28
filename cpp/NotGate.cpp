@@ -5,9 +5,12 @@ NotGate::NotGate(std::string n) : Gate(n) {
     std::cout << "[" << name << "] NOT-Gatter aktiviert" << std::endl;
 }
 
-void NotGate::setInputB(int /* val */) {
-    std::cout << "[" << name << " WARNUNG] NOT-Gatter hat keinen Eingang B!" << std::endl;
-    std::cout << "           Nutzen Sie setInputA() für den einzigen Eingang." << std::endl;
+void NotGate::setInput(int port, int val) {
+    if (port != 0) {
+        std::cout << "[" << name << " WARNUNG] NOT-Gatter hat nur Port 0!" << std::endl;
+        return;
+    }
+    Gate::setInput(0, val);
 }
 
 bool NotGate::evaluate() {
