@@ -2,7 +2,8 @@
 #include <iostream>
 
 NandGate::NandGate(std::string n)
-    : Gate(n, 2), andGate(n + "-AND"), notGate(n + "-NOT") {
+    : Gate(n), andGate(n + "-AND"), notGate(n + "-NOT") {
+    m_inputs.resize(2); // Das NAND-Gatter hat exakt 2 Eingangs-Pins
     std::cout << "[" << name << "] NAND-Gatter aktiviert (Komposition: AND + NOT)" << std::endl;
 }
 
@@ -14,12 +15,12 @@ void NandGate::setInput(int port, int val) {
 bool NandGate::evaluate() {
     bool andResult = andGate.evaluate();
     notGate.setInput(0, andResult ? 1 : 0);
-    output = notGate.evaluate();
-    return output;
+    m_output = notGate.evaluate();
+    return m_output;
 }
 
 void NandGate::printState() const {
-    std::cout << "NandGate [" << name << ": A=" << (inputs[0] ? 1 : 0)
-              << ", B=" << (inputs[1] ? 1 : 0)
-              << "] => Output=" << (output ? 1 : 0) << std::endl;
+    std::cout << "NandGate [" << name << ": A=" << (m_inputs[0] ? 1 : 0)
+              << ", B=" << (m_inputs[1] ? 1 : 0)
+              << "] => Output=" << (m_output ? 1 : 0) << std::endl;
 }
