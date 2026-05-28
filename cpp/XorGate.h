@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Component.h"
+#include "Gate.h"
 
-class XorGate : public Component {
+class XorGate : public Gate {
 public:
     XorGate(std::string n);
     bool evaluate() override;

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Component.h"
+#include "Gate.h"
 
-class AndGate : public Component {
+class AndGate : public Gate {
 public:
     AndGate(std::string n);
     bool evaluate() override final;

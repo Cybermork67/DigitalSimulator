@@ -1,7 +1,7 @@
 #include "XorGate.h"
 #include <iostream>
 
-XorGate::XorGate(std::string n) : Component(n) {
+XorGate::XorGate(std::string n) : Gate(n) {
     std::cout << "[" << name << "] XOR-Gatter aktiviert" << std::endl;
 }
 

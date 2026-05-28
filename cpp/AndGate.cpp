@@ -1,7 +1,7 @@
 #include "AndGate.h"
 #include <iostream>
 
-AndGate::AndGate(std::string n) : Component(n) {
+AndGate::AndGate(std::string n) : Gate(n) {
     std::cout << "[" << name << "] AND-Gatter aktiviert" << std::endl;
 }
 

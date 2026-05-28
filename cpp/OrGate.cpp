@@ -1,7 +1,7 @@
 #include "OrGate.h"
 #include <iostream>
 
-OrGate::OrGate(std::string n) : Component(n) {
+OrGate::OrGate(std::string n) : Gate(n) {
     std::cout << "[" << name << "] OR-Gatter aktiviert" << std::endl;
 }
 

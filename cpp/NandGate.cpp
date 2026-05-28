@@ -2,7 +2,7 @@
 #include <iostream>
 
 NandGate::NandGate(std::string n) 
-    : Component(n), andGate(n + "-AND"), notGate(n + "-NOT") {
+    : Gate(n), andGate(n + "-AND"), notGate(n + "-NOT") {
     std::cout << "[" << name << "] NAND-Gatter aktiviert (Komposition: AND + NOT)" << std::endl;
 }
 

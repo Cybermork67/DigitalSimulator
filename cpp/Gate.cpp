@@ -1,11 +1,11 @@
-#include "Component.h"
+#include "Gate.h"
 
-Component::Component(std::string n) 
+Gate::Gate(std::string n) 
     : name(std::move(n)), inA(false), inB(false), output(false) {
-    std::cout << "[" << name << "] Komponente erstellt" << std::endl;
+    std::cout << "[" << name << "] Gate erstellt" << std::endl;
 }
 
-void Component::setInputA(int val) {
+void Gate::setInputA(int val) {
     if (val == 0) {
         inA = false;
     } else if (val == 1) {
@@ -16,7 +16,7 @@ void Component::setInputA(int val) {
     }
 }
 
-void Component::setInputB(int val) {
+void Gate::setInputB(int val) {
     if (val == 0) {
         inB = false;
     } else if (val == 1) {
@@ -27,6 +27,6 @@ void Component::setInputB(int val) {
     }
 }
 
-bool Component::getOutput() const {
+bool Gate::getOutput() const {
     return output;
 }

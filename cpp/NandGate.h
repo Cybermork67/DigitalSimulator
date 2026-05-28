@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Component.h"
+#include "Gate.h"
 #include "AndGate.h"
 #include "NotGate.h"
 
-class NandGate : public Component {
+class NandGate : public Gate {
 private:
     AndGate andGate;
     NotGate notGate;

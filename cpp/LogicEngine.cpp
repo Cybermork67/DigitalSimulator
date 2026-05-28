@@ -15,17 +15,17 @@ void LogicEngine::setCircuitName(std::string name) {
     std::cout << "[LogicEngine] Schaltungsname gesetzt: " << circuitName << std::endl;
 }
 
-void LogicEngine::addComponent(std::unique_ptr<Component> comp) {
+void LogicEngine::addGate(std::unique_ptr<Gate> comp) {
     if (comp != nullptr) {
         circuit.push_back(std::move(comp));
-        std::cout << "[LogicEngine] Komponente hinzugefügt. Gesamt: " << circuit.size() << std::endl;
+        std::cout << "[LogicEngine] Gate hinzugefügt. Gesamt: " << circuit.size() << std::endl;
     }
 }
 
 void LogicEngine::doTick() {
     tickCount++;
     std::cout << "\n[Tick " << tickCount << "] Evaluiere " << circuit.size() 
-              << " Komponenten:" << std::endl;
+              << " Gates:" << std::endl;
     
     for (auto& c : circuit) {
         bool result = c->evaluate();
@@ -33,6 +33,6 @@ void LogicEngine::doTick() {
     }
 }
 
-int LogicEngine::getComponentCount() const {
+int LogicEngine::getGateCount() const {
     return circuit.size();
 }

@@ -1,7 +1,7 @@
 #include "NotGate.h"
 #include <iostream>
 
-NotGate::NotGate(std::string n) : Component(n) {
+NotGate::NotGate(std::string n) : Gate(n) {
     std::cout << "[" << name << "] NOT-Gatter aktiviert" << std::endl;
 }
 

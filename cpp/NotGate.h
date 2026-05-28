@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Component.h"
+#include "Gate.h"
 
-class NotGate : public Component {
+class NotGate : public Gate {
 public:
     NotGate(std::string n);
     void setInputB(int val) override;
