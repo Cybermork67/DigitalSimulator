@@ -1,47 +1,105 @@
 #include <iostream>
 #include <memory>
-#include "Component.h"
 #include "AndGate.h"
 #include "OrGate.h"
 #include "NotGate.h"
 #include "XorGate.h"
 #include "NandGate.h"
-#include "LogicEngine.h"
 
 int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "Labor 5: Speichersicherheit & Refactoring" << std::endl;
-    std::cout << "Ausgangslage: Rohe Pointer und Memory Leaks" << std::endl;
-    std::cout << "========================================\n" << std::endl;
+    bool testPassed = true;
 
-    LogicEngine engine;
-    engine.setCircuitName("Leak-Test-Schaltung");
+    std::cout << "--- STARTE AUTOMATISIERTE WAHRHEITSTABELLEN-TESTS ---" << std::endl;
 
-    std::cout << "Baue Schaltung auf dem Heap..." << std::endl;
+    // AND-Gatter: 4 Testfaelle (0-0->0, 0-1->0, 1-0->0, 1-1->1)
+    {
+        auto gate = std::make_unique<AndGate>("AND-Test");
+        int tests[4][3] = {{0,0,0},{0,1,0},{1,0,0},{1,1,1}};
+        for (int i = 0; i < 4; ++i) {
+            gate->setInputA(tests[i][0]);
+            gate->setInputB(tests[i][1]);
+            int result = gate->evaluate() ? 1 : 0;
+            if (result != tests[i][2]) {
+                std::cerr << "FEHLER AND: A=" << tests[i][0] << " B=" << tests[i][1]
+                          << " -> Erhalten: " << result
+                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
+                testPassed = false;
+            }
+        }
+    }
 
-    auto g1 = std::make_unique<AndGate>("Haupt-AND");
-    auto g2 = std::make_unique<OrGate>("Haupt-OR");
-    auto g3 = std::make_unique<XorGate>("Test-XOR");
+    // OR-Gatter: 4 Testfaelle (0-0->0, 0-1->1, 1-0->1, 1-1->1)
+    {
+        auto gate = std::make_unique<OrGate>("OR-Test");
+        int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,1}};
+        for (int i = 0; i < 4; ++i) {
+            gate->setInputA(tests[i][0]);
+            gate->setInputB(tests[i][1]);
+            int result = gate->evaluate() ? 1 : 0;
+            if (result != tests[i][2]) {
+                std::cerr << "FEHLER OR: A=" << tests[i][0] << " B=" << tests[i][1]
+                          << " -> Erhalten: " << result
+                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
+                testPassed = false;
+            }
+        }
+    }
 
-    std::cout << "\nSetze Signale..." << std::endl;
-    g1->setInputA(1);
-    g1->setInputB(1);
+    // XOR-Gatter: 4 Testfaelle (0-0->0, 0-1->1, 1-0->1, 1-1->0)
+    {
+        auto gate = std::make_unique<XorGate>("XOR-Test");
+        int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,0}};
+        for (int i = 0; i < 4; ++i) {
+            gate->setInputA(tests[i][0]);
+            gate->setInputB(tests[i][1]);
+            int result = gate->evaluate() ? 1 : 0;
+            if (result != tests[i][2]) {
+                std::cerr << "FEHLER XOR: A=" << tests[i][0] << " B=" << tests[i][1]
+                          << " -> Erhalten: " << result
+                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
+                testPassed = false;
+            }
+        }
+    }
 
-    g2->setInputA(0);
-    g2->setInputB(1);
+    // NAND-Gatter: 4 Testfaelle (0-0->1, 0-1->1, 1-0->1, 1-1->0)
+    {
+        auto gate = std::make_unique<NandGate>("NAND-Test");
+        int tests[4][3] = {{0,0,1},{0,1,1},{1,0,1},{1,1,0}};
+        for (int i = 0; i < 4; ++i) {
+            gate->setInputA(tests[i][0]);
+            gate->setInputB(tests[i][1]);
+            int result = gate->evaluate() ? 1 : 0;
+            if (result != tests[i][2]) {
+                std::cerr << "FEHLER NAND: A=" << tests[i][0] << " B=" << tests[i][1]
+                          << " -> Erhalten: " << result
+                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
+                testPassed = false;
+            }
+        }
+    }
 
-    g3->setInputA(1);
-    g3->setInputB(0);
+    // NOT-Gatter: 2 Testfaelle (0->1, 1->0)
+    {
+        auto gate = std::make_unique<NotGate>("NOT-Test");
+        int tests[2][2] = {{0,1},{1,0}};
+        for (int i = 0; i < 2; ++i) {
+            gate->setInputA(tests[i][0]);
+            int result = gate->evaluate() ? 1 : 0;
+            if (result != tests[i][1]) {
+                std::cerr << "FEHLER NOT: A=" << tests[i][0]
+                          << " -> Erhalten: " << result
+                          << " (Erwartet: " << tests[i][1] << ")" << std::endl;
+                testPassed = false;
+            }
+        }
+    }
 
-    //Jetzt verschieben 
-    engine.addComponent(std::move(g1));
-    engine.addComponent(std::move(g2));
-    engine.addComponent(std::move(g3));
+    if (!testPassed) {
+        std::cerr << "--- PIPELINE-ABSTURZ: TESTS FEHLGESCHLAGEN ---" << std::endl;
+        return 1;
+    }
 
-    std::cout << "\nStarte Simulation:" << std::endl;
-    engine.doTick();
-
-    std::cout << "\nProgramm beendet. Speicher wird automatisch freigegeben." << std::endl;
-
+    std::cout << "--- ALLE TESTS BESTANDEN (18/18) ---" << std::endl;
     return 0;
 }

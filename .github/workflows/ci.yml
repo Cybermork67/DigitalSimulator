@@ -1,0 +1,24 @@
+name: C++ Automated Test Suite
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+
+      - name: Kompiliere den Simulator
+        run: g++ -std=c++17 -Wall -Wextra cpp/*.cpp -o simulator
+
+      - name: Fuehre Wahrheitstabellen-Tests aus
+        run: |
+          if [ -f "./simulator" ]; then
+            ./simulator
+          else
+            ./simulator.exe
+          fi
