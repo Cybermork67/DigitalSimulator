@@ -1,8 +1,8 @@
 #include "NandGate.h"
 #include <iostream>
 
-NandGate::NandGate(std::string n) 
-    : Gate(n), andGate(n + "-AND"), notGate(n + "-NOT") {
+NandGate::NandGate(std::string n)
+    : Gate(n, 2), andGate(n + "-AND"), notGate(n + "-NOT") {
     std::cout << "[" << name << "] NAND-Gatter aktiviert (Komposition: AND + NOT)" << std::endl;
 }
 
@@ -19,7 +19,7 @@ bool NandGate::evaluate() {
 }
 
 void NandGate::printState() const {
-    std::cout << "NandGate [" << name << ": A=" << (inA ? 1 : 0) 
-              << ", B=" << (inB ? 1 : 0) 
+    std::cout << "NandGate [" << name << ": A=" << (inputs[0] ? 1 : 0)
+              << ", B=" << (inputs[1] ? 1 : 0)
               << "] => Output=" << (output ? 1 : 0) << std::endl;
 }

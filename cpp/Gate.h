@@ -1,17 +1,17 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <iostream>
 
 class Gate {
 protected:
     std::string name;
-    bool inA;
-    bool inB;
+    std::vector<bool> inputs;
     bool output;
 
 public:
-    Gate(std::string n);
+    Gate(std::string n, int numInputs = 2);
     virtual void setInput(int port, int val);
     bool getOutput() const;
     virtual bool evaluate() = 0;

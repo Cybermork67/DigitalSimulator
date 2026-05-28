@@ -1,7 +1,7 @@
 #include "NotGate.h"
 #include <iostream>
 
-NotGate::NotGate(std::string n) : Gate(n) {
+NotGate::NotGate(std::string n) : Gate(n, 1) {
     std::cout << "[" << name << "] NOT-Gatter aktiviert" << std::endl;
 }
 
@@ -14,11 +14,11 @@ void NotGate::setInput(int port, int val) {
 }
 
 bool NotGate::evaluate() {
-    output = !inA;
+    output = !inputs[0];
     return output;
 }
 
 void NotGate::printState() const {
-    std::cout << "NotGate [" << name << ": Input=" << (inA ? 1 : 0) 
+    std::cout << "NotGate [" << name << ": Input=" << (inputs[0] ? 1 : 0)
               << "] => Output=" << (output ? 1 : 0) << std::endl;
 }
