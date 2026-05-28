@@ -2,13 +2,15 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <iostream>
 
 class Gate {
 protected:
     std::string name;
     std::vector<bool> inputs;
-    bool output;
+    std::vector<Gate*> wires;
+    bool output = false;
 
 public:
     Gate(std::string n, int numInputs = 2);
