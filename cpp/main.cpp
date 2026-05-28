@@ -6,6 +6,18 @@
 #include "XorGate.h"
 #include "NandGate.h"
 
+// Hilfklasse: konstante Signalquelle fuer Tests (kein echtes Gate)
+class SignalSource : public Gate {
+    bool m_value;
+public:
+    SignalSource(std::string n, bool val) : Gate(n), m_value(val) {
+        m_output = val;
+    }
+    void setValue(bool val) { m_value = val; m_output = val; }
+    bool evaluate() override { m_output = m_value; return m_output; }
+    void printState() const override {}
+};
+
 int main() {
     bool testPassed = true;
 
@@ -13,12 +25,14 @@ int main() {
 
     // AND-Gatter: 4 Testfaelle
     {
-        auto gate = std::make_unique<AndGate>("AND-Test");
+        AndGate gate("AND-Test");
+        SignalSource srcA("A", false), srcB("B", false);
+        gate.connectInput(0, &srcA);
+        gate.connectInput(1, &srcB);
         int tests[4][3] = {{0,0,0},{0,1,0},{1,0,0},{1,1,1}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInput(0, tests[i][0]);
-            gate->setInput(1, tests[i][1]);
-            int result = gate->evaluate() ? 1 : 0;
+            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
+            int result = gate.evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER AND: A=" << tests[i][0] << " B=" << tests[i][1]
                           << " -> Erhalten: " << result
@@ -30,12 +44,14 @@ int main() {
 
     // OR-Gatter: 4 Testfaelle
     {
-        auto gate = std::make_unique<OrGate>("OR-Test");
+        OrGate gate("OR-Test");
+        SignalSource srcA("A", false), srcB("B", false);
+        gate.connectInput(0, &srcA);
+        gate.connectInput(1, &srcB);
         int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,1}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInput(0, tests[i][0]);
-            gate->setInput(1, tests[i][1]);
-            int result = gate->evaluate() ? 1 : 0;
+            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
+            int result = gate.evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER OR: A=" << tests[i][0] << " B=" << tests[i][1]
                           << " -> Erhalten: " << result
@@ -47,12 +63,14 @@ int main() {
 
     // XOR-Gatter: 4 Testfaelle
     {
-        auto gate = std::make_unique<XorGate>("XOR-Test");
+        XorGate gate("XOR-Test");
+        SignalSource srcA("A", false), srcB("B", false);
+        gate.connectInput(0, &srcA);
+        gate.connectInput(1, &srcB);
         int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,0}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInput(0, tests[i][0]);
-            gate->setInput(1, tests[i][1]);
-            int result = gate->evaluate() ? 1 : 0;
+            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
+            int result = gate.evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER XOR: A=" << tests[i][0] << " B=" << tests[i][1]
                           << " -> Erhalten: " << result
@@ -64,12 +82,14 @@ int main() {
 
     // NAND-Gatter: 4 Testfaelle
     {
-        auto gate = std::make_unique<NandGate>("NAND-Test");
+        NandGate gate("NAND-Test");
+        SignalSource srcA("A", false), srcB("B", false);
+        gate.connectInput(0, &srcA);
+        gate.connectInput(1, &srcB);
         int tests[4][3] = {{0,0,1},{0,1,1},{1,0,1},{1,1,0}};
         for (int i = 0; i < 4; ++i) {
-            gate->setInput(0, tests[i][0]);
-            gate->setInput(1, tests[i][1]);
-            int result = gate->evaluate() ? 1 : 0;
+            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
+            int result = gate.evaluate() ? 1 : 0;
             if (result != tests[i][2]) {
                 std::cerr << "FEHLER NAND: A=" << tests[i][0] << " B=" << tests[i][1]
                           << " -> Erhalten: " << result
@@ -81,11 +101,13 @@ int main() {
 
     // NOT-Gatter: 2 Testfaelle
     {
-        auto gate = std::make_unique<NotGate>("NOT-Test");
+        NotGate gate("NOT-Test");
+        SignalSource src("A", false);
+        gate.connectInput(0, &src);
         int tests[2][2] = {{0,1},{1,0}};
         for (int i = 0; i < 2; ++i) {
-            gate->setInput(0, tests[i][0]);
-            int result = gate->evaluate() ? 1 : 0;
+            src.setValue(tests[i][0]);
+            int result = gate.evaluate() ? 1 : 0;
             if (result != tests[i][1]) {
                 std::cerr << "FEHLER NOT: A=" << tests[i][0]
                           << " -> Erhalten: " << result

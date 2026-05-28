@@ -1,17 +1,10 @@
 #pragma once
 
 #include "Gate.h"
-#include "AndGate.h"
-#include "NotGate.h"
 
 class NandGate : public Gate {
-private:
-    AndGate andGate;
-    NotGate notGate;
-
 public:
     NandGate(std::string n);
-    void setInput(int port, int val) override;
     bool evaluate() override;
     void printState() const override;
 };
