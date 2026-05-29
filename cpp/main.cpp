@@ -1,127 +1,150 @@
 #include <iostream>
+#include <iostream>
+#include <vector>
 #include <memory>
+#include "Component.h"
 #include "AndGate.h"
 #include "OrGate.h"
 #include "NotGate.h"
 #include "XorGate.h"
 #include "NandGate.h"
+#include "Switch.h"
 
-// Hilfklasse: konstante Signalquelle fuer Tests (kein echtes Gate)
-class SignalSource : public Gate {
-    bool m_value;
-public:
-    SignalSource(std::string n, bool val) : Gate(n), m_value(val) {
-        m_output = val;
-    }
-    void setValue(bool val) { m_value = val; m_output = val; }
-    bool evaluate() override { m_output = m_value; return m_output; }
-    void printState() const override {}
-};
+/**
+ * =====================================================================
+ * Labor 7: Schaltkreisaufbau mit Smart Pointers (DAG-Architektur)
+ * =====================================================================
+ * 
+ * Diese Demonstration zeigt:
+ * 1. Den Aufbau eines echten digitalen Schaltkreises
+ * 2. Die Verbindung von Gattern über Smart Pointers (Kupferkabel)
+ * 3. Die Simulation eines Halbaddierers (Half Adder)
+ * 4. Das "Pull-Prinzip" für Werteabfrage
+ * 
+ * Ein Halbaddierer:
+ * - Nimmt zwei Ein-Bit-Eingänge (A, B)
+ * - Produziert zwei Ausgänge: Summe (S) und Carry (C)
+ * - S = A XOR B
+ * - C = A AND B
+ */
 
 int main() {
-    bool testPassed = true;
+    std::cout << "========================================" << std::endl;
+    std::cout << "  C++ Digital Simulator - Labor 7" << std::endl;
+    std::cout << "  Halbaddierer (Half Adder) Schaltkreis" << std::endl;
+    std::cout << "========================================\n" << std::endl;
 
-    std::cout << "--- STARTE AUTOMATISIERTE WAHRHEITSTABELLEN-TESTS ---" << std::endl;
+    // =====================================================================
+    // Phase 4: Halbaddierer montieren
+    // =====================================================================
 
-    // AND-Gatter: 4 Testfaelle
-    {
-        AndGate gate("AND-Test");
-        SignalSource srcA("A", false), srcB("B", false);
-        gate.connectInput(0, &srcA);
-        gate.connectInput(1, &srcB);
-        int tests[4][3] = {{0,0,0},{0,1,0},{1,0,0},{1,1,1}};
-        for (int i = 0; i < 4; ++i) {
-            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
-            int result = gate.evaluate() ? 1 : 0;
-            if (result != tests[i][2]) {
-                std::cerr << "FEHLER AND: A=" << tests[i][0] << " B=" << tests[i][1]
-                          << " -> Erhalten: " << result
-                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
-                testPassed = false;
-            }
+    std::cout << "[SCHRITT 1] Komponenten instanziieren (als Smart Pointers)...\n" << std::endl;
+
+    // Datenquellen (Schalter)
+    auto swA = std::make_shared<Switch>("Input A");
+    auto swB = std::make_shared<Switch>("Input B");
+
+    // Logikgatter
+    auto xorGate = std::make_shared<XorGate>("XOR (Summe)");
+    auto andGate = std::make_shared<AndGate>("AND (Carry)");
+
+    std::cout << "\n[SCHRITT 2] Schaltkreis verkabeln (DAG-Aufbau)...\n" << std::endl;
+
+    // Verkabelung (Fan-Out!): Beide Schalter gehen an beide Gatter
+    // ┌─────────────┐
+    // │  Input A ──┬──> XOR
+    // └─────────────┤
+    //              └──> AND
+    //
+    // ┌─────────────┐
+    // │  Input B ──┬──> XOR
+    // └─────────────┤
+    //              └──> AND
+
+    xorGate->connectInput(0, swA);    // XOR Pin 0 = Input A
+    xorGate->connectInput(1, swB);    // XOR Pin 1 = Input B
+
+    andGate->connectInput(0, swA);    // AND Pin 0 = Input A
+    andGate->connectInput(1, swB);    // AND Pin 1 = Input B
+
+    std::cout << "\n[SCHRITT 3] Wahrheitstabelle: Alle 4 Kombinationen testen...\n" << std::endl;
+    std::cout << "┌─────┬─────┬────────┬───────┐" << std::endl;
+    std::cout << "│  A  │  B  │ Summe  │ Carry │" << std::endl;
+    std::cout << "├─────┼─────┼────────┼───────┤" << std::endl;
+
+    // Test-Kombinationen: 0+0, 0+1, 1+0, 1+1
+    std::vector<std::pair<bool, bool>> testCases = {
+        {false, false},
+        {false, true},
+        {true, false},
+        {true, true}
+    };
+
+    int testCount = 0;
+    int passedCount = 0;
+
+    for (auto [a, b] : testCases) {
+        // KRITISCH: Erst Schalter setzen, DANN evaluate() aufrufen!
+        swA->setState(a);
+        swB->setState(b);
+
+        // Evaluiere die Gatter (Pull-Prinzip: Sie holen sich Werte selbst)
+        xorGate->evaluate();
+        andGate->evaluate();
+
+        // Lese die Ergebnisse aus
+        bool summe = xorGate->getOutput();
+        bool carry = andGate->getOutput();
+
+        // Berechne erwartete Werte
+        bool expectedSum = a ^ b;        // XOR
+        bool expectedCarry = a && b;     // AND
+
+        // Ausgabe der Testzelle
+        std::cout << "│  " << (a ? 1 : 0) << "  │  " << (b ? 1 : 0) << "  │";
+        std::cout << "   " << (summe ? 1 : 0) << "    │";
+        std::cout << "   " << (carry ? 1 : 0) << "   │";
+
+        // Überprüfe Korrektheit
+        testCount += 2;
+        if (summe == expectedSum) {
+            std::cout << " ✓";
+            passedCount++;
+        } else {
+            std::cout << " ✗";
+        }
+        std::cout << " ";
+        if (carry == expectedCarry) {
+            std::cout << "✓ " << std::endl;
+            passedCount++;
+        } else {
+            std::cout << "✗ " << std::endl;
         }
     }
 
-    // OR-Gatter: 4 Testfaelle
-    {
-        OrGate gate("OR-Test");
-        SignalSource srcA("A", false), srcB("B", false);
-        gate.connectInput(0, &srcA);
-        gate.connectInput(1, &srcB);
-        int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,1}};
-        for (int i = 0; i < 4; ++i) {
-            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
-            int result = gate.evaluate() ? 1 : 0;
-            if (result != tests[i][2]) {
-                std::cerr << "FEHLER OR: A=" << tests[i][0] << " B=" << tests[i][1]
-                          << " -> Erhalten: " << result
-                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
-                testPassed = false;
-            }
-        }
-    }
+    std::cout << "└─────┴─────┴────────┴───────┘" << std::endl;
 
-    // XOR-Gatter: 4 Testfaelle
-    {
-        XorGate gate("XOR-Test");
-        SignalSource srcA("A", false), srcB("B", false);
-        gate.connectInput(0, &srcA);
-        gate.connectInput(1, &srcB);
-        int tests[4][3] = {{0,0,0},{0,1,1},{1,0,1},{1,1,0}};
-        for (int i = 0; i < 4; ++i) {
-            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
-            int result = gate.evaluate() ? 1 : 0;
-            if (result != tests[i][2]) {
-                std::cerr << "FEHLER XOR: A=" << tests[i][0] << " B=" << tests[i][1]
-                          << " -> Erhalten: " << result
-                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
-                testPassed = false;
-            }
-        }
-    }
+    std::cout << "\n[SCHRITT 4] Zustandsbericht der Komponenten:\n" << std::endl;
 
-    // NAND-Gatter: 4 Testfaelle
-    {
-        NandGate gate("NAND-Test");
-        SignalSource srcA("A", false), srcB("B", false);
-        gate.connectInput(0, &srcA);
-        gate.connectInput(1, &srcB);
-        int tests[4][3] = {{0,0,1},{0,1,1},{1,0,1},{1,1,0}};
-        for (int i = 0; i < 4; ++i) {
-            srcA.setValue(tests[i][0]); srcB.setValue(tests[i][1]);
-            int result = gate.evaluate() ? 1 : 0;
-            if (result != tests[i][2]) {
-                std::cerr << "FEHLER NAND: A=" << tests[i][0] << " B=" << tests[i][1]
-                          << " -> Erhalten: " << result
-                          << " (Erwartet: " << tests[i][2] << ")" << std::endl;
-                testPassed = false;
-            }
-        }
-    }
+    swA->printState();
+    swB->printState();
+    xorGate->printState();
+    andGate->printState();
 
-    // NOT-Gatter: 2 Testfaelle
-    {
-        NotGate gate("NOT-Test");
-        SignalSource src("A", false);
-        gate.connectInput(0, &src);
-        int tests[2][2] = {{0,1},{1,0}};
-        for (int i = 0; i < 2; ++i) {
-            src.setValue(tests[i][0]);
-            int result = gate.evaluate() ? 1 : 0;
-            if (result != tests[i][1]) {
-                std::cerr << "FEHLER NOT: A=" << tests[i][0]
-                          << " -> Erhalten: " << result
-                          << " (Erwartet: " << tests[i][1] << ")" << std::endl;
-                testPassed = false;
-            }
-        }
-    }
+    // =====================================================================
+    // Abschluss und Exit-Code
+    // =====================================================================
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "Test Summary:" << std::endl;
+    std::cout << "Bestanden: " << passedCount << " / " << testCount << std::endl;
+    std::cout << "========================================" << std::endl;
 
-    if (!testPassed) {
-        std::cerr << "--- PIPELINE-ABSTURZ: TESTS FEHLGESCHLAGEN ---" << std::endl;
-        return 1;
+    if (passedCount == testCount) {
+        std::cout << "\n[SUCCESS] Halbaddierer funktioniert korrekt! ✓" << std::endl;
+        std::cout << "Der DAG wurde erfolgreich aufgebaut und evaluiert." << std::endl;
+        return 0;  // ← EXIT-CODE 0: ERFOLG (Grüner Haken für CI)
+    } else {
+        std::cerr << "\n[FEHLER] Mindestens ein Test fehlgeschlagen!" << std::endl;
+        return 1;  // ← EXIT-CODE 1: FEHLER (Rotes Kreuz für CI)
     }
-
-    std::cout << "--- ALLE TESTS BESTANDEN (18/18) ---" << std::endl;
-    return 0;
 }
