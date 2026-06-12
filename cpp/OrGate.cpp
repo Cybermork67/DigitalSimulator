@@ -13,7 +13,7 @@ void OrGate::evaluate() {
         m_inputs[1]->evaluate();
         m_output = m_inputs[0]->getOutput() || m_inputs[1]->getOutput();
     } else {
-        std::cerr << "FEHLER: OR-Gatter [" << m_name << "] hat unverbundene Pins!" << std::endl;
+        std::cerr << "FEHLER: OR [" << m_name << "] hat unverbundene Pins!" << std::endl;
         m_output = false;
     }
     m_isCalculated = true;
@@ -22,6 +22,6 @@ void OrGate::evaluate() {
 void OrGate::printState() const {
     bool a = m_inputs[0] ? m_inputs[0]->getOutput() : false;
     bool b = m_inputs[1] ? m_inputs[1]->getOutput() : false;
-    std::cout << "OrGate [" << m_name << ": A=" << a << ", B=" << b
-              << "] => Output=" << m_output << std::endl;
+    std::cout << "OrGate [" << m_name << ": A=" << a << " B=" << b
+              << "] => " << m_output << std::endl;
 }

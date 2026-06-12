@@ -1,4 +1,5 @@
 #include "LogicEngine.h"
+#include "DFlipFlop.h"
 #include <iostream>
 
 LogicEngine::LogicEngine()
@@ -11,24 +12,31 @@ void LogicEngine::setCircuitName(std::string name) {
     std::cout << "[LogicEngine] Schaltungsname: " << circuitName << std::endl;
 }
 
-void LogicEngine::addComponent(std::shared_ptr<Gate> comp) {
+void LogicEngine::addComponent(std::unique_ptr<Gate> comp) {
     if (comp != nullptr) {
-        circuit.push_back(comp);
-        std::cout << "[LogicEngine] Komponente hinzugefügt. Gesamt: "
-                  << circuit.size() << std::endl;
+        circuit.push_back(std::move(comp));
     }
 }
 
 void LogicEngine::doTick() {
     tickCount++;
-    std::cout << "\n[Tick " << tickCount << "] Evaluiere "
-              << circuit.size() << " Komponenten:" << std::endl;
+
+    // Phase A: Amnesie - Cache aller Gatter zuruecksetzen
     for (auto& c : circuit) {
         c->reset();
     }
+
+    // Phase B: Lese-Phase - Kombinatorik berechnen
     for (auto& c : circuit) {
         c->evaluate();
-        std::cout << "  => " << (c->getOutput() ? "true" : "false") << std::endl;
+    }
+
+    // Phase C: Schreib-Phase - DFlipFlops per dynamic_cast finden und takten
+    for (auto& c : circuit) {
+        DFlipFlop* dff = dynamic_cast<DFlipFlop*>(c.get());
+        if (dff != nullptr) {
+            dff->onClockTick();
+        }
     }
 }
 
@@ -42,7 +50,4 @@ void LogicEngine::reserveComponents(int expectedCount) {
         return;
     }
     circuit.reserve(static_cast<size_t>(expectedCount));
-    std::cout << "[LogicEngine] Speicher reserviert für " << expectedCount
-              << " Komponenten. Kapazität: " << circuit.capacity()
-              << " (size: " << circuit.size() << ")" << std::endl;
 }

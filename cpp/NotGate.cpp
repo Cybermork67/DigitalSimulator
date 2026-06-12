@@ -12,7 +12,7 @@ void NotGate::evaluate() {
         m_inputs[0]->evaluate();
         m_output = !m_inputs[0]->getOutput();
     } else {
-        std::cerr << "FEHLER: NOT-Gatter [" << m_name << "] hat unverbundene Pins!" << std::endl;
+        std::cerr << "FEHLER: NOT [" << m_name << "] hat unverbundene Pins!" << std::endl;
         m_output = false;
     }
     m_isCalculated = true;
@@ -21,5 +21,5 @@ void NotGate::evaluate() {
 void NotGate::printState() const {
     bool a = m_inputs[0] ? m_inputs[0]->getOutput() : false;
     std::cout << "NotGate [" << m_name << ": Input=" << a
-              << "] => Output=" << m_output << std::endl;
+              << "] => " << m_output << std::endl;
 }

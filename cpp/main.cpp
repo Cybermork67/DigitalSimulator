@@ -1,119 +1,81 @@
 #include <iostream>
-#include <vector>
 #include <memory>
-#include "Component.h"
-#include "AndGate.h"
-#include "OrGate.h"
-#include "NotGate.h"
-#include "XorGate.h"
-#include "NandGate.h"
+#include "LogicEngine.h"
 #include "Switch.h"
 #include "DFlipFlop.h"
-#include "SimulationEngine.h"
 
-/**
- * =====================================================================
- * Labor 10: Sequenzielle Logik, Takt & das D-Flip-Flop
- * =====================================================================
- * 
- * Diese Demonstration zeigt:
- * 1. Phase 1: Die Klasse DFlipFlop (Das Gedächtnis)
- * 2. Phase 2: Die 2-Phasen-Schleife & DFS-Korrektur
- * 3. Phase 3: Der 1-Bit Zähler (Die Feuerprobe) mit Ringverkabelung
- * 
- * Architektur:
- * - DFlipFlop = Firewall gegen Endlosschleifen
- * - Zwei-Phasen-Simulation:
- *   Phase A (Amnesie): reset() auf alle Gatter
- *   Phase B (Lesen): evaluate() auf Kombinatorik-Endpunkte
- *   Phase C (Ausgabe): Werte drucken
- *   Phase D (Schreiben): onClockTick() auf alle Flip-Flops
- * 
- * Der 1-Bit Zähler:
- *   DFlipFlop ----> NOT ----+
- *   ^                        |
- *   |________________________|
- * 
- * Beim jeden Takt toggelt der Ausgang: 0 -> 1 -> 0 -> 1 ...
- */
+// Phase 3: ASCII-Timing-Diagramm
+// '_' = Low (0), Overline-Symbol = High (1)
+void printWaveform(int tick, bool val0, bool val1, bool val2, bool val3) {
+    auto sym = [](bool v) -> const char* { return v ? "\xC2\xAF" : "_"; };
+    std::cout << "Tick " << tick << " | "
+              << sym(val0) << " "
+              << sym(val1) << " "
+              << sym(val2) << " "
+              << sym(val3) << std::endl;
+}
 
 int main() {
     std::cout << "========================================" << std::endl;
-    std::cout << "  C++ Digital Simulator - Labor 10" << std::endl;
-    std::cout << "  Sequenzielle Logik & 1-Bit Zähler" << std::endl;
+    std::cout << "  C++ Digital Simulator - Labor 11" << std::endl;
+    std::cout << "  4-Bit Schieberegister" << std::endl;
     std::cout << "========================================\n" << std::endl;
 
-    // =====================================================================
-    // Phase 1: Die Klasse DFlipFlop (Das Gedächtnis)
-    // =====================================================================
+    LogicEngine engine;
+    engine.setCircuitName("Schieberegister");
 
-    std::cout << "[PHASE 1] DFlipFlop-Klasse instanziieren...\n" << std::endl;
+    // Phase 2: 4-Bit Schieberegister aufbauen
+    // Bauteile erzeugen
+    auto swIn = std::make_unique<Switch>("DataIn");
+    auto d0   = std::make_unique<DFlipFlop>("d0");
+    auto d1   = std::make_unique<DFlipFlop>("d1");
+    auto d2   = std::make_unique<DFlipFlop>("d2");
+    auto d3   = std::make_unique<DFlipFlop>("d3");
 
-    auto dff = std::make_shared<DFlipFlop>("Counter-Bit");
-    auto notGate = std::make_shared<NotGate>("Toggle");
+    // Rohe Zeiger vor dem move sichern (fuer Verkabelung und spaetere Ausgabe)
+    Switch*    swPtr = swIn.get();
+    DFlipFlop* d0Ptr = d0.get();
+    DFlipFlop* d1Ptr = d1.get();
+    DFlipFlop* d2Ptr = d2.get();
+    DFlipFlop* d3Ptr = d3.get();
 
-    std::cout << "[INFO] Komponenten erstellt!\n" << std::endl;
+    // Serielle Verkabelung: DataIn -> d0 -> d1 -> d2 -> d3
+    d0->connectInput(0, swPtr);
+    d1->connectInput(0, d0Ptr);
+    d2->connectInput(0, d1Ptr);
+    d3->connectInput(0, d2Ptr);
 
-    // =====================================================================
-    // Phase 2: Ringverkabelung - Die Feuerprobe
-    // =====================================================================
+    // Alle 5 Bauteile zur Engine hinzufuegen (Ownership-Transfer)
+    engine.addComponent(std::move(swIn));
+    engine.addComponent(std::move(d0));
+    engine.addComponent(std::move(d1));
+    engine.addComponent(std::move(d2));
+    engine.addComponent(std::move(d3));
 
-    std::cout << "[PHASE 2] Ringverkabelung (DFF -> NOT -> DFF)...\n" << std::endl;
+    std::cout << "\n[INFO] Schaltkreis hat "
+              << engine.getComponentCount() << " Komponenten.\n" << std::endl;
 
-    // DFF-Output als Input zum NOT
-    notGate->connectInput(0, dff);
+    // Timing-Diagramm-Kopfzeile
+    std::cout << "Legende: _ = 0 (Low)   \xC2\xAF = 1 (High)" << std::endl;
+    std::cout << "         d0 d1 d2 d3" << std::endl;
+    std::cout << "----------------------------" << std::endl;
 
-    // NOT-Output als Input zum DFF (RINGVERKABELUNG!)
-    dff->connectInput(0, notGate);
+    // Tick 1: DataIn = 1 (eine '1' in das Register schieben)
+    swPtr->setState(true);
+    engine.doTick();
+    printWaveform(1, d0Ptr->getOutput(), d1Ptr->getOutput(),
+                     d2Ptr->getOutput(), d3Ptr->getOutput());
 
-    std::cout << "[INFO] Ring-Schaltkreis vollständig!\n" << std::endl;
-
-    // ===== Vektoren für die 2-Phasen-Schleife =====
-    std::vector<std::shared_ptr<Gate>> allGates;      // Alle Gatter (für reset)
-    std::vector<std::shared_ptr<DFlipFlop>> allFlipFlops;  // Nur Flip-Flops (für Clock)
-
-    allGates.push_back(dff);
-    allGates.push_back(notGate);
-    allFlipFlops.push_back(dff);
-
-    // =====================================================================
-    // Phase 3: Der 1-Bit Zähler - Die 2-Phasen-Simulation
-    // =====================================================================
-
-    std::cout << "[PHASE 3] Simulation startet (10 Taktzyklen)...\n" << std::endl;
-    std::cout << "┌───────┬─────────────┐" << std::endl;
-    std::cout << "│ Takt  │ DFF-Ausgang │" << std::endl;
-    std::cout << "├───────┼─────────────┤" << std::endl;
-
-    // ===== Schleife über 10 Taktzyklen =====
-    for (int cycle = 0; cycle < 10; cycle++) {
-
-        // ===== Schritt A: Amnesie - Cache reset =====
-        // Alle Gatter "vergessen" ihre bisherigen Berechnungen
-        for (auto& gate : allGates) {
-            gate->reset();
-        }
-
-        // ===== Schritt B: Lese-Phase - Kombinatorik berechnen =====
-        // WICHTIG: NOT-Gatter muss vor DFF evaluiert werden!
-        // DFF ist eine Firewall - es evaluiert seinen Input nicht
-        // Daher müssen wir explizit den NOT auswerten
-        notGate->evaluate();
-
-        // ===== Schritt C: Ausgabe =====
-        bool dffOutput = dff->getOutput();
-        std::cout << "│ " << cycle << "     │ " << dffOutput << "           │" << std::endl;
-
-        // ===== Schritt D: Schreib-Phase - Flip-Flops aktualisieren =====
-        // onClockTick() liest den stabilen Output von NOT und speichert ihn
-        for (auto& ff : allFlipFlops) {
-            ff->onClockTick();
-        }
+    // Ticks 2-5: DataIn = 0 (die '1' durch das Register wandern lassen)
+    swPtr->setState(false);
+    for (int t = 2; t <= 5; ++t) {
+        engine.doTick();
+        printWaveform(t, d0Ptr->getOutput(), d1Ptr->getOutput(),
+                         d2Ptr->getOutput(), d3Ptr->getOutput());
     }
 
-    std::cout << "└───────┴─────────────┘" << std::endl;
-    std::cout << "\n[SUCCESS] Simulation abgeschlossen!" << std::endl;
-    std::cout << "Die Ausgabe sollte abwechselnd 0, 1, 0, 1 sein!" << std::endl;
+    std::cout << "----------------------------" << std::endl;
+    std::cout << "\n[SUCCESS] Die '1' ist durch alle 4 Flip-Flops gewandert!" << std::endl;
 
     return 0;
 }

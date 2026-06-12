@@ -15,7 +15,7 @@ void XorGate::evaluate() {
         bool b = m_inputs[1]->getOutput();
         m_output = (a && !b) || (!a && b);
     } else {
-        std::cerr << "FEHLER: XOR-Gatter [" << m_name << "] hat unverbundene Pins!" << std::endl;
+        std::cerr << "FEHLER: XOR [" << m_name << "] hat unverbundene Pins!" << std::endl;
         m_output = false;
     }
     m_isCalculated = true;
@@ -24,6 +24,6 @@ void XorGate::evaluate() {
 void XorGate::printState() const {
     bool a = m_inputs[0] ? m_inputs[0]->getOutput() : false;
     bool b = m_inputs[1] ? m_inputs[1]->getOutput() : false;
-    std::cout << "XorGate [" << m_name << ": A=" << a << ", B=" << b
-              << "] => Output=" << m_output << std::endl;
+    std::cout << "XorGate [" << m_name << ": A=" << a << " B=" << b
+              << "] => " << m_output << std::endl;
 }

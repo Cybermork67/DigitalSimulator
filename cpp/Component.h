@@ -10,15 +10,17 @@ protected:
     bool m_isCalculated = false;
     std::string m_name;
     bool m_output = false;
-    std::vector<std::shared_ptr<Gate>> m_inputs;
+    std::vector<Gate*> m_inputs; // Rohe Zeiger: Ownership liegt bei der Engine
 
 public:
     Gate(std::string n);
 
-    void connectInput(int index, std::shared_ptr<Gate> source);
+    // Verbindet einen Eingang mit einem anderen Gatter (kein Ownership-Transfer)
+    void connectInput(int index, Gate* source);
+
     bool getOutput() const;
 
-    // Cache zuruecksetzen (Phase A der 2-Phasen-Schleife)
+    // Cache-Reset fuer Phase A der 2-Phasen-Schleife
     void reset();
 
     virtual void evaluate() = 0;

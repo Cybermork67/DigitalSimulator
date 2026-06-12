@@ -5,15 +5,14 @@ Gate::Gate(std::string n)
     std::cout << "[" << m_name << "] Gate erstellt" << std::endl;
 }
 
-void Gate::connectInput(int index, std::shared_ptr<Gate> source) {
+void Gate::connectInput(int index, Gate* source) {
     if (index >= 0 && index < static_cast<int>(m_inputs.size())) {
         m_inputs[index] = source;
         std::cout << "[VERKABELUNG] " << m_name << " Pin " << index
                   << " verbunden mit " << source->m_name << std::endl;
     } else {
         std::cerr << "[FEHLER] " << m_name << ": Pin " << index
-                  << " existiert nicht! (Verfügbar: 0-"
-                  << (m_inputs.size() - 1) << ")" << std::endl;
+                  << " existiert nicht!" << std::endl;
     }
 }
 
