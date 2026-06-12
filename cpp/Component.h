@@ -20,11 +20,14 @@
 class Gate {
 protected:
     // Geschützte Attribute
+    bool m_isCalculated = false; // Unser Cache-Flag
     std::string m_name;
     bool m_output;
     std::vector<std::shared_ptr<Gate>> m_inputs;  // ← Die "Kupferkabel"
 
 public:
+
+    
     /**
      * Konstruktor: Initialisiert ein Gatter mit Namen
      * @param n Der Name des Gatters (z.B. "Haupt-AND", "Carry")

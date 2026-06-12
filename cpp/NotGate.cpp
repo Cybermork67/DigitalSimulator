@@ -15,14 +15,22 @@ NotGate::NotGate(std::string n) : Gate(n) {
  * 
  * Floating Pin Check: Ist das Kabel eingesteckt?
  */
-void NotGate::evaluate() {
-    if (m_inputs[0]) {
-        bool val = m_inputs[0]->getOutput();
-        m_output = !val;
-    } else {
-        std::cerr << "[WARNUNG] " << m_name << ": NOT-Gatter hat unverbundenen Pin (Floating)!" << std::endl;
-        m_output = false;
-    }
+
+void NotGate::evaluate() { 
+
+if (m_isCalculated) {
+    return; // Cache Hit! Sofortiger Abbruch der Rekursion.
+}
+ // 1. DFS: Vorgänger zwingen, sich zu berechnen!
+ if (m_inputs[0] != nullptr) {
+     m_inputs[0]->evaluate();
+ }
+ // 2. Werte sicher auslesen (mit Fallback bei fehlendem Kabel)
+ bool val = (m_inputs[0] != nullptr) ? m_inputs[0]->getOutput() : false;  
+ // 3. Eigene Logik anwenden
+ m_output = !val; 
+
+m_isCalculated = true;
 }
 
 /**

@@ -16,16 +16,28 @@ NandGate::NandGate(std::string n) : Gate(n) {
  * 
  * Floating Pin Check: Sind beide Kabel eingesteckt?
  */
-void NandGate::evaluate() {
-    if (m_inputs[0] && m_inputs[1]) {
-        bool valA = m_inputs[0]->getOutput();
-        bool valB = m_inputs[1]->getOutput();
-        m_output = !(valA && valB);
-    } else {
-        std::cerr << "[WARNUNG] " << m_name << ": NAND-Gatter hat unverbundene Pins (Floating)!" << std::endl;
-        m_output = false;
-    }
+
+void NandGate::evaluate() { 
+
+if (m_isCalculated) {
+    return; // Cache Hit! Sofortiger Abbruch der Rekursion.
 }
+ // 1. DFS: Vorgänger zwingen, sich zu berechnen!
+ if (m_inputs[0] != nullptr) {
+     m_inputs[0]->evaluate();
+ }
+ if (m_inputs[1] != nullptr) {
+     m_inputs[1]->evaluate(); 
+ }
+ // 2. Werte sicher auslesen (mit Fallback bei fehlendem Kabel)
+ bool valA = (m_inputs[0] != nullptr) ? m_inputs[0]->getOutput() : false; 
+ bool valB = (m_inputs[1] != nullptr) ? m_inputs[1]->getOutput() : false; 
+ // 3. Eigene Logik anwenden
+ m_output = !(valA && valB); 
+
+m_isCalculated = true;
+}
+
 
 /**
  * Gibt den Zustand dieses NAND-Gatters aus

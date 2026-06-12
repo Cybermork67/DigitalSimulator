@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iostream>
 #include <vector>
 #include <memory>
 #include "Component.h"
@@ -9,142 +8,112 @@
 #include "XorGate.h"
 #include "NandGate.h"
 #include "Switch.h"
+#include "DFlipFlop.h"
+#include "SimulationEngine.h"
 
 /**
  * =====================================================================
- * Labor 7: Schaltkreisaufbau mit Smart Pointers (DAG-Architektur)
+ * Labor 10: Sequenzielle Logik, Takt & das D-Flip-Flop
  * =====================================================================
  * 
  * Diese Demonstration zeigt:
- * 1. Den Aufbau eines echten digitalen Schaltkreises
- * 2. Die Verbindung von Gattern über Smart Pointers (Kupferkabel)
- * 3. Die Simulation eines Halbaddierers (Half Adder)
- * 4. Das "Pull-Prinzip" für Werteabfrage
+ * 1. Phase 1: Die Klasse DFlipFlop (Das Gedächtnis)
+ * 2. Phase 2: Die 2-Phasen-Schleife & DFS-Korrektur
+ * 3. Phase 3: Der 1-Bit Zähler (Die Feuerprobe) mit Ringverkabelung
  * 
- * Ein Halbaddierer:
- * - Nimmt zwei Ein-Bit-Eingänge (A, B)
- * - Produziert zwei Ausgänge: Summe (S) und Carry (C)
- * - S = A XOR B
- * - C = A AND B
+ * Architektur:
+ * - DFlipFlop = Firewall gegen Endlosschleifen
+ * - Zwei-Phasen-Simulation:
+ *   Phase A (Amnesie): reset() auf alle Gatter
+ *   Phase B (Lesen): evaluate() auf Kombinatorik-Endpunkte
+ *   Phase C (Ausgabe): Werte drucken
+ *   Phase D (Schreiben): onClockTick() auf alle Flip-Flops
+ * 
+ * Der 1-Bit Zähler:
+ *   DFlipFlop ----> NOT ----+
+ *   ^                        |
+ *   |________________________|
+ * 
+ * Beim jeden Takt toggelt der Ausgang: 0 -> 1 -> 0 -> 1 ...
  */
 
 int main() {
     std::cout << "========================================" << std::endl;
-    std::cout << "  C++ Digital Simulator - Labor 7" << std::endl;
-    std::cout << "  Halbaddierer (Half Adder) Schaltkreis" << std::endl;
+    std::cout << "  C++ Digital Simulator - Labor 10" << std::endl;
+    std::cout << "  Sequenzielle Logik & 1-Bit Zähler" << std::endl;
     std::cout << "========================================\n" << std::endl;
 
     // =====================================================================
-    // Phase 4: Halbaddierer montieren
+    // Phase 1: Die Klasse DFlipFlop (Das Gedächtnis)
     // =====================================================================
 
-    std::cout << "[SCHRITT 1] Komponenten instanziieren (als Smart Pointers)...\n" << std::endl;
+    std::cout << "[PHASE 1] DFlipFlop-Klasse instanziieren...\n" << std::endl;
 
-    // Datenquellen (Schalter)
-    auto swA = std::make_shared<Switch>("Input A");
-    auto swB = std::make_shared<Switch>("Input B");
+    auto dff = std::make_shared<DFlipFlop>("Counter-Bit");
+    auto notGate = std::make_shared<NotGate>("Toggle");
 
-    // Logikgatter
-    auto xorGate = std::make_shared<XorGate>("XOR (Summe)");
-    auto andGate = std::make_shared<AndGate>("AND (Carry)");
+    std::cout << "[INFO] Komponenten erstellt!\n" << std::endl;
 
-    std::cout << "\n[SCHRITT 2] Schaltkreis verkabeln (DAG-Aufbau)...\n" << std::endl;
+    // =====================================================================
+    // Phase 2: Ringverkabelung - Die Feuerprobe
+    // =====================================================================
 
-    // Verkabelung (Fan-Out!): Beide Schalter gehen an beide Gatter
-    // ┌─────────────┐
-    // │  Input A ──┬──> XOR
-    // └─────────────┤
-    //              └──> AND
-    //
-    // ┌─────────────┐
-    // │  Input B ──┬──> XOR
-    // └─────────────┤
-    //              └──> AND
+    std::cout << "[PHASE 2] Ringverkabelung (DFF -> NOT -> DFF)...\n" << std::endl;
 
-    xorGate->connectInput(0, swA);    // XOR Pin 0 = Input A
-    xorGate->connectInput(1, swB);    // XOR Pin 1 = Input B
+    // DFF-Output als Input zum NOT
+    notGate->connectInput(0, dff);
 
-    andGate->connectInput(0, swA);    // AND Pin 0 = Input A
-    andGate->connectInput(1, swB);    // AND Pin 1 = Input B
+    // NOT-Output als Input zum DFF (RINGVERKABELUNG!)
+    dff->connectInput(0, notGate);
 
-    std::cout << "\n[SCHRITT 3] Wahrheitstabelle: Alle 4 Kombinationen testen...\n" << std::endl;
-    std::cout << "┌─────┬─────┬────────┬───────┐" << std::endl;
-    std::cout << "│  A  │  B  │ Summe  │ Carry │" << std::endl;
-    std::cout << "├─────┼─────┼────────┼───────┤" << std::endl;
+    std::cout << "[INFO] Ring-Schaltkreis vollständig!\n" << std::endl;
 
-    // Test-Kombinationen: 0+0, 0+1, 1+0, 1+1
-    std::vector<std::pair<bool, bool>> testCases = {
-        {false, false},
-        {false, true},
-        {true, false},
-        {true, true}
-    };
+    // ===== Vektoren für die 2-Phasen-Schleife =====
+    std::vector<std::shared_ptr<Gate>> allGates;      // Alle Gatter (für reset)
+    std::vector<std::shared_ptr<DFlipFlop>> allFlipFlops;  // Nur Flip-Flops (für Clock)
 
-    int testCount = 0;
-    int passedCount = 0;
+    allGates.push_back(dff);
+    allGates.push_back(notGate);
+    allFlipFlops.push_back(dff);
 
-    for (auto [a, b] : testCases) {
-        // KRITISCH: Erst Schalter setzen, DANN evaluate() aufrufen!
-        swA->setState(a);
-        swB->setState(b);
+    // =====================================================================
+    // Phase 3: Der 1-Bit Zähler - Die 2-Phasen-Simulation
+    // =====================================================================
 
-        // Evaluiere die Gatter (Pull-Prinzip: Sie holen sich Werte selbst)
-        xorGate->evaluate();
-        andGate->evaluate();
+    std::cout << "[PHASE 3] Simulation startet (10 Taktzyklen)...\n" << std::endl;
+    std::cout << "┌───────┬─────────────┐" << std::endl;
+    std::cout << "│ Takt  │ DFF-Ausgang │" << std::endl;
+    std::cout << "├───────┼─────────────┤" << std::endl;
 
-        // Lese die Ergebnisse aus
-        bool summe = xorGate->getOutput();
-        bool carry = andGate->getOutput();
+    // ===== Schleife über 10 Taktzyklen =====
+    for (int cycle = 0; cycle < 10; cycle++) {
 
-        // Berechne erwartete Werte
-        bool expectedSum = a ^ b;        // XOR
-        bool expectedCarry = a && b;     // AND
-
-        // Ausgabe der Testzelle
-        std::cout << "│  " << (a ? 1 : 0) << "  │  " << (b ? 1 : 0) << "  │";
-        std::cout << "   " << (summe ? 1 : 0) << "    │";
-        std::cout << "   " << (carry ? 1 : 0) << "   │";
-
-        // Überprüfe Korrektheit
-        testCount += 2;
-        if (summe == expectedSum) {
-            std::cout << " ✓";
-            passedCount++;
-        } else {
-            std::cout << " ✗";
+        // ===== Schritt A: Amnesie - Cache reset =====
+        // Alle Gatter "vergessen" ihre bisherigen Berechnungen
+        for (auto& gate : allGates) {
+            gate->reset();
         }
-        std::cout << " ";
-        if (carry == expectedCarry) {
-            std::cout << "✓ " << std::endl;
-            passedCount++;
-        } else {
-            std::cout << "✗ " << std::endl;
+
+        // ===== Schritt B: Lese-Phase - Kombinatorik berechnen =====
+        // WICHTIG: NOT-Gatter muss vor DFF evaluiert werden!
+        // DFF ist eine Firewall - es evaluiert seinen Input nicht
+        // Daher müssen wir explizit den NOT auswerten
+        notGate->evaluate();
+
+        // ===== Schritt C: Ausgabe =====
+        bool dffOutput = dff->getOutput();
+        std::cout << "│ " << cycle << "     │ " << dffOutput << "           │" << std::endl;
+
+        // ===== Schritt D: Schreib-Phase - Flip-Flops aktualisieren =====
+        // onClockTick() liest den stabilen Output von NOT und speichert ihn
+        for (auto& ff : allFlipFlops) {
+            ff->onClockTick();
         }
     }
 
-    std::cout << "└─────┴─────┴────────┴───────┘" << std::endl;
+    std::cout << "└───────┴─────────────┘" << std::endl;
+    std::cout << "\n[SUCCESS] Simulation abgeschlossen!" << std::endl;
+    std::cout << "Die Ausgabe sollte abwechselnd 0, 1, 0, 1 sein!" << std::endl;
 
-    std::cout << "\n[SCHRITT 4] Zustandsbericht der Komponenten:\n" << std::endl;
-
-    swA->printState();
-    swB->printState();
-    xorGate->printState();
-    andGate->printState();
-
-    // =====================================================================
-    // Abschluss und Exit-Code
-    // =====================================================================
-    std::cout << "\n========================================" << std::endl;
-    std::cout << "Test Summary:" << std::endl;
-    std::cout << "Bestanden: " << passedCount << " / " << testCount << std::endl;
-    std::cout << "========================================" << std::endl;
-
-    if (passedCount == testCount) {
-        std::cout << "\n[SUCCESS] Halbaddierer funktioniert korrekt! ✓" << std::endl;
-        std::cout << "Der DAG wurde erfolgreich aufgebaut und evaluiert." << std::endl;
-        return 0;  // ← EXIT-CODE 0: ERFOLG (Grüner Haken für CI)
-    } else {
-        std::cerr << "\n[FEHLER] Mindestens ein Test fehlgeschlagen!" << std::endl;
-        return 1;  // ← EXIT-CODE 1: FEHLER (Rotes Kreuz für CI)
-    }
+    return 0;
 }
