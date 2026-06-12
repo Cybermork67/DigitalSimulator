@@ -5,7 +5,7 @@
 #include "DFlipFlop.h"
 
 // Phase 3: ASCII-Timing-Diagramm
-// '_' = Low (0), Overline-Symbol = High (1)
+// '_' = Low (0),  ¯ = High (1)
 void printWaveform(int tick, bool val0, bool val1, bool val2, bool val3) {
     auto sym = [](bool v) -> const char* { return v ? "\xC2\xAF" : "_"; };
     std::cout << "Tick " << tick << " | "
@@ -24,15 +24,14 @@ int main() {
     LogicEngine engine;
     engine.setCircuitName("Schieberegister");
 
-    // Phase 2: 4-Bit Schieberegister aufbauen
-    // Bauteile erzeugen
+    // Phase 2: Bauteile erzeugen
     auto swIn = std::make_unique<Switch>("DataIn");
     auto d0   = std::make_unique<DFlipFlop>("d0");
     auto d1   = std::make_unique<DFlipFlop>("d1");
     auto d2   = std::make_unique<DFlipFlop>("d2");
     auto d3   = std::make_unique<DFlipFlop>("d3");
 
-    // Rohe Zeiger vor dem move sichern (fuer Verkabelung und spaetere Ausgabe)
+    // Rohe Zeiger vor dem move sichern
     Switch*    swPtr = swIn.get();
     DFlipFlop* d0Ptr = d0.get();
     DFlipFlop* d1Ptr = d1.get();
@@ -45,7 +44,7 @@ int main() {
     d2->connectInput(0, d1Ptr);
     d3->connectInput(0, d2Ptr);
 
-    // Alle 5 Bauteile zur Engine hinzufuegen (Ownership-Transfer)
+    // Ownership an Engine uebertragen
     engine.addComponent(std::move(swIn));
     engine.addComponent(std::move(d0));
     engine.addComponent(std::move(d1));
@@ -55,18 +54,17 @@ int main() {
     std::cout << "\n[INFO] Schaltkreis hat "
               << engine.getComponentCount() << " Komponenten.\n" << std::endl;
 
-    // Timing-Diagramm-Kopfzeile
     std::cout << "Legende: _ = 0 (Low)   \xC2\xAF = 1 (High)" << std::endl;
     std::cout << "         d0 d1 d2 d3" << std::endl;
     std::cout << "----------------------------" << std::endl;
 
-    // Tick 1: DataIn = 1 (eine '1' in das Register schieben)
+    // Tick 1: DataIn = 1
     swPtr->setState(true);
     engine.doTick();
     printWaveform(1, d0Ptr->getOutput(), d1Ptr->getOutput(),
                      d2Ptr->getOutput(), d3Ptr->getOutput());
 
-    // Ticks 2-5: DataIn = 0 (die '1' durch das Register wandern lassen)
+    // Ticks 2-5: DataIn = 0, '1' wandert durch das Register
     swPtr->setState(false);
     for (int t = 2; t <= 5; ++t) {
         engine.doTick();
