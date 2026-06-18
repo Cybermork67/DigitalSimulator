@@ -4,7 +4,7 @@
 #include "Switch.h"
 #include "DFlipFlop.h"
 
-// Phase 3: ASCII-Timing-Diagramm
+// Phase 3: ASCII-Timing-Diagramm ausgeben
 // '_' = Low (0),  ¯ = High (1)
 void printWaveform(int tick, bool val0, bool val1, bool val2, bool val3) {
     auto sym = [](bool v) -> const char* { return v ? "\xC2\xAF" : "_"; };
