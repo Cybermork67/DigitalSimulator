@@ -29,7 +29,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd DigitalSimulator/Musterlösung_Termin11 && g++ -std=c++17 -Wall -Wextra *.cpp -o simulator && ./simulator"
+args = "cd Musterlösung_Termin11 && g++ -std=c++17 -Wall -Wextra *.cpp -o simulator && ./simulator"
 
 [agent]
 stack = "PNPM_WORKSPACE"
