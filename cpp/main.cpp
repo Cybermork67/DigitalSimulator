@@ -17,7 +17,7 @@ void printWaveform(int tick, bool val0, bool val1, bool val2, bool val3) {
 
 int main() {
     std::cout << "========================================" << std::endl;
-    std::cout << "  C++ Digital Simulator - Labor 11" << std::endl;
+    std::cout << "  C++ Digital Simulator - Labor 1fuizwuzfwuzvezrvzearuvaeurbvaebuvbauzebrvabeurbvuaebrb1" << std::endl;
     std::cout << "  4-Bit Schieberegister" << std::endl;
     std::cout << "========================================\n" << std::endl;
 
