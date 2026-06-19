@@ -52,4 +52,53 @@ void LogicEngine::reserveComponents(int expectedCount) {
     circuit.reserve(static_cast<size_t>(expectedCount));
 }
 
-Gate* LogicEngine::getGateByName(const std::string& name)
+Gate* LogicEngine::getGateByName(const std::string& name) {
+    for (auto& comp : circuit) {
+        if (comp->getName() == name) {
+            return comp.get(); //gibt raw Pointer zurück
+        }
+    }
+    // nicht gefunden
+    std:cerr << "[LogicEngine] Fehler: Gatter " << name << " nicht gefunden!" << std::endl;
+    return nullptr;
+}
+
+void LogicEngine::loadFromFile(const std::string& filename) {
+    std::cerr << "\n[LogicEngine] Lade Schaltung aus Datei: " << filename << std::endl;
+
+    std:ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "[LogicEngine ERROR] Kann Datei nicht öffnen: " << filename << std::endl;
+        return;
+    }
+
+    std::string line;
+    int lineNumber = 0;
+    int gateCount = 0, wireCount = 0;
+
+    while (std::getline(file, line)) {
+        lineNumber++;
+
+        //Ingoriere leere Zeilen
+        if (line.empty()) continue;
+
+        //Ignoriere Kommentare (Zeilen die mit # oder // beginnen)
+        if (line[0] == '#' || (line.length() > 1 && line[0] == '/' && line[1] == '/')) {
+            continue;
+        }
+
+        // Parse Zeile mit stringstream
+        std::istringstream ss(line);
+        std::string command; //Erstes Wort extrahieren 
+
+        //GATE Zeilen
+        if (command == "Gate") {
+            std::string type, name;
+            ss >> type >> name;
+
+            if (type.empty() || name.empty()) {
+                std::cerr << "[LogicEngine WARNING] Zeile " << lineNumber << ": GATE Format ungültig" << std::endl;
+                continue;
+            }
+        }
+    }
